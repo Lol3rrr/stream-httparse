@@ -1,0 +1,21 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Tests before
+      run: cargo test
+    - name: Cargo login
+      env:
+        API_KEY: ${{ secrets.CRATES_IO_KEY }}
+      run: |
+        cargo login "$API_KEY"
+    - name: Publish
+      run: cargo publish
