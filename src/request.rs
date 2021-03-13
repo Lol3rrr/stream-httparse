@@ -54,7 +54,7 @@ impl<'a> Request<'a> {
     }
 
     /// Returns the Protocol of the Request
-    pub fn protocol(&self) -> &str {
+    pub fn protocol(&self) -> &'a str {
         &self.protocol
     }
     /// Returns the Method of the Request
@@ -62,7 +62,7 @@ impl<'a> Request<'a> {
         &self.method
     }
     /// Returns the Path of the Request
-    pub fn path(&self) -> &str {
+    pub fn path(&self) -> &'a str {
         &self.path
     }
     /// Returns the Headers of the Request
