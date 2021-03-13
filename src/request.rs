@@ -88,7 +88,10 @@ impl<'a> Request<'a> {
     }
 
     /// Overwrites the Path with the new Path
-    pub fn set_path(&'a mut self, n_path: &'a str) {
+    pub fn set_path<'b>(&mut self, n_path: &'b str)
+    where
+        'b: 'a,
+    {
         self.path = n_path;
     }
 }
@@ -102,6 +105,15 @@ impl std::fmt::Display for Request<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn update_path_to_own() {
+        let mut req = Request::new("HTTP/1.1", Method::GET, "/test/path", Headers::new(), &[]);
+
+        req.set_path(&req.path()[1..]);
+
+        assert_eq!("test/path", req.path());
+    }
 
     #[test]
     fn serialize_valid() {
