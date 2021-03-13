@@ -1,2 +1,5 @@
-/target
-Cargo.lock
+target/
+
+/fuzz/target
+/fuzz/artifacts
+/fuzz/corpus
