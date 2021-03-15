@@ -67,31 +67,27 @@ impl ReqParser {
         match &mut self.state {
             State::Nothing if byte == b' ' => {
                 let end = current;
-                let n_state = State::MethodParsed((0, end));
-                self.state = n_state;
+                self.state = State::MethodParsed((0, end));
                 ProgressState::Head
             }
             State::MethodParsed(method) if byte == b' ' => {
                 let start = method.1;
                 let end = current;
 
-                let n_state = State::PathParsed(*method, (start + 1, end));
-                self.state = n_state;
+                self.state = State::PathParsed(*method, (start + 1, end));
                 ProgressState::Head
             }
             State::PathParsed(method, path) if byte == b'\r' => {
                 let start = path.1;
                 let end = current;
 
-                let n_state = State::HeaderKey(*method, *path, (start + 1, end), end);
-                self.state = n_state;
+                self.state = State::HeaderKey(*method, *path, (start + 1, end), end);
                 ProgressState::Head
             }
             State::HeaderKey(method, path, protocol, raw_start)
                 if current == *raw_start + 2 && byte == b'\r' =>
             {
-                let n_state = State::HeadersParsed(*method, *path, *protocol, current + 2);
-                self.state = n_state;
+                self.state = State::HeadersParsed(*method, *path, *protocol, current + 2);
                 ProgressState::Head
             }
             State::HeaderKey(method, path, protocol, raw_start)
@@ -100,8 +96,7 @@ impl ReqParser {
                 let start = *raw_start + 2;
                 let end = current;
 
-                let n_state = State::HeaderValue(*method, *path, *protocol, (start, end));
-                self.state = n_state;
+                self.state = State::HeaderValue(*method, *path, *protocol, (start, end));
                 ProgressState::Head
             }
             State::HeaderValue(method, path, protocol, header_key)
@@ -111,8 +106,7 @@ impl ReqParser {
                 let end = current;
 
                 self.headers_buf.push((*header_key, (start, end)));
-                let n_state = State::HeaderKey(*method, *path, *protocol, end);
-                self.state = n_state;
+                self.state = State::HeaderKey(*method, *path, *protocol, end);
                 ProgressState::Head
             }
             State::HeadersParsed(_, _, _, end) if current == *end - 1 => {
@@ -141,6 +135,7 @@ impl ReqParser {
                         };
 
                     length = value_str.parse().unwrap();
+                    break;
                 }
 
                 if length > 0 {

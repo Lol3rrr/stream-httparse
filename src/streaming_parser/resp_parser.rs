@@ -62,27 +62,25 @@ impl RespParser {
         self.progress = ProgressState::Head;
     }
 
+    #[inline(always)]
     fn parse(&mut self, byte: u8, current: usize) -> ProgressState {
         match &mut self.state {
             ParseState::Nothing if byte == b' ' => {
                 let end = current;
-                let n_state = ParseState::ProtocolParsed((0, end));
-                self.state = n_state;
+                self.state = ParseState::ProtocolParsed((0, end));
                 ProgressState::Head
             }
             ParseState::ProtocolParsed(protocol) if byte == b'\r' => {
                 let start = protocol.1;
                 let end = current;
 
-                let n_state = ParseState::HeaderKey(*protocol, (start + 1, end), end);
-                self.state = n_state;
+                self.state = ParseState::HeaderKey(*protocol, (start + 1, end), end);
                 ProgressState::Head
             }
             ParseState::HeaderKey(protocol, status_code, raw_start)
                 if current == *raw_start + 2 && byte == b'\r' =>
             {
-                let n_state = ParseState::HeadersParsed(*protocol, *status_code, current + 2);
-                self.state = n_state;
+                self.state = ParseState::HeadersParsed(*protocol, *status_code, current + 2);
                 ProgressState::Head
             }
             ParseState::HeaderKey(protocol, status_code, raw_start)
@@ -91,8 +89,7 @@ impl RespParser {
                 let start = *raw_start + 2;
                 let end = current;
 
-                let n_state = ParseState::HeaderValue(*protocol, *status_code, (start, end));
-                self.state = n_state;
+                self.state = ParseState::HeaderValue(*protocol, *status_code, (start, end));
                 ProgressState::Head
             }
             ParseState::HeaderValue(protocol, status_code, header_key)
@@ -102,8 +99,7 @@ impl RespParser {
                 let end = current;
 
                 self.headers_buf.push((*header_key, (start, end)));
-                let n_state = ParseState::HeaderKey(*protocol, *status_code, end);
-                self.state = n_state;
+                self.state = ParseState::HeaderKey(*protocol, *status_code, end);
                 ProgressState::Head
             }
             ParseState::HeadersParsed(_, _, end) if current == *end - 1 => {
@@ -132,6 +128,7 @@ impl RespParser {
                         };
 
                     length = value_str.parse().unwrap();
+                    break;
                 }
 
                 if length > 0 {
