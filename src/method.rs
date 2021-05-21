@@ -63,6 +63,39 @@ impl std::fmt::Display for Method {
     }
 }
 
+#[cfg(feature = "wasm_serialize")]
+impl Method {
+    /// Serializes the header into a WASM friendly form
+    pub fn wasm_serialize(&self) -> i32 {
+        match *self {
+            Self::OPTIONS => 0,
+            Self::GET => 1,
+            Self::HEAD => 2,
+            Self::POST => 3,
+            Self::PUT => 4,
+            Self::DELETE => 5,
+            Self::TRACE => 6,
+            Self::CONNECT => 7,
+        }
+    }
+
+    /// Deserializes the Output from the `wasm_serialize` method
+    /// back into a valid Method
+    pub fn wasm_deserialize(tmp: i32) -> Option<Self> {
+        match tmp {
+            0 => Some(Self::OPTIONS),
+            1 => Some(Self::GET),
+            2 => Some(Self::HEAD),
+            3 => Some(Self::POST),
+            4 => Some(Self::PUT),
+            5 => Some(Self::DELETE),
+            6 => Some(Self::TRACE),
+            7 => Some(Self::CONNECT),
+            _ => None,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
