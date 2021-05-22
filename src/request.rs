@@ -1,10 +1,10 @@
-use crate::{header::HeaderValue, Headers, Method};
+use crate::{general::StringContainer, header::HeaderValue, Headers, Method};
 
 /// Represents a single HTTP-Request
 #[derive(Debug, PartialEq)]
 pub struct Request<'a> {
     method: Method,
-    path: &'a str,
+    path: StringContainer<'a>,
     protocol: &'a str,
     headers: Headers<'a>,
     body: &'a [u8],
@@ -22,7 +22,7 @@ impl<'a> Request<'a> {
     ) -> Self {
         Self {
             method,
-            path,
+            path: StringContainer::Ref(path),
             protocol,
             headers,
             body,
@@ -33,13 +33,14 @@ impl<'a> Request<'a> {
     /// as a tuple of (HTTP-Head, HTTP-Body)
     pub fn serialize(&self) -> (Vec<u8>, &[u8]) {
         let method = self.method.serialize();
-        let capacity = method.len() + 1 + self.path.len() + 1 + self.protocol.len() + 4;
+        let path = self.path.as_ref();
+        let capacity = method.len() + 1 + path.len() + 1 + self.protocol.len() + 4;
         let mut result = Vec::with_capacity(capacity);
 
         // The first line with method, path, protocol
         result.extend_from_slice(method.as_bytes());
         result.push(b' ');
-        result.extend_from_slice(self.path.as_bytes());
+        result.extend_from_slice(path.as_bytes());
         result.push(b' ');
         result.extend_from_slice(self.protocol.as_bytes());
         result.extend_from_slice("\r\n".as_bytes());
@@ -62,8 +63,8 @@ impl<'a> Request<'a> {
         &self.method
     }
     /// Returns the Path of the Request
-    pub fn path(&self) -> &'a str {
-        &self.path
+    pub fn path(&'a self) -> &'a str {
+        self.path.as_ref()
     }
     /// Returns the Headers of the Request
     pub fn headers(&self) -> &Headers<'a> {
@@ -88,17 +89,22 @@ impl<'a> Request<'a> {
     }
 
     /// Overwrites the Path with the new Path
-    pub fn set_path<'b>(&mut self, n_path: &'b str)
+    pub fn set_path_ref<'b>(&mut self, n_path: &'b str)
     where
         'b: 'a,
     {
-        self.path = n_path;
+        self.path = StringContainer::Ref(n_path);
+    }
+    /// Overwrites the Path with the new Path, but using
+    /// an owned String instead of a reference
+    pub fn set_path_owned(&mut self, n_path: String) {
+        self.path = StringContainer::Owned(n_path);
     }
 }
 
 impl std::fmt::Display for Request<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[{}] Path: '{}'", self.method, self.path)
+        write!(f, "[{}] Path: '{}'", self.method, self.path.as_ref())
     }
 }
 
@@ -110,7 +116,8 @@ mod tests {
     fn update_path_to_own() {
         let mut req = Request::new("HTTP/1.1", Method::GET, "/test/path", Headers::new(), &[]);
 
-        req.set_path(&req.path()[1..]);
+        let path = req.path().to_owned();
+        req.set_path_ref(&path[1..]);
 
         assert_eq!("test/path", req.path());
     }

@@ -23,6 +23,8 @@ pub use headers::Headers;
 mod chunk;
 pub use chunk::Chunk;
 
+pub(crate) mod general;
+
 /// This module holds all the Parsers that can deal
 /// with parsing the Data in multiple chunks and dont
 /// need all of it right away

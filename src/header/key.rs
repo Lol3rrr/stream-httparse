@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 /// Allows the HeaderKey to take the form of a variety of different
 /// valid Types, mostly related to their lifetimes.
 /// This however also gives more control over how they are compared
@@ -57,6 +59,20 @@ impl PartialEq for HeaderKey<'_> {
     }
 }
 
+impl Eq for HeaderKey<'_> {}
+
+impl PartialOrd for HeaderKey<'_> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.as_ref().partial_cmp(other.as_ref())
+    }
+}
+
+impl Ord for HeaderKey<'_> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.as_ref().cmp(other.as_ref())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -81,5 +97,13 @@ mod tests {
         HeaderKey::StrRef("test-key").serialize(&mut result);
 
         assert_eq!("test-key".as_bytes(), &result);
+    }
+
+    #[test]
+    fn partial_ord() {
+        assert_eq!(
+            "first" < "second",
+            HeaderKey::StrRef("first") < HeaderKey::StrRef("second")
+        );
     }
 }
