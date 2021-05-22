@@ -99,10 +99,8 @@ impl<'a> Headers<'a> {
     where
         K: Into<HeaderKey<'a>>,
     {
-        match self.find(&key.into()) {
-            Some(index) => Some(&self.headers.get(index).unwrap().value),
-            None => None,
-        }
+        self.find(&key.into())
+            .map(|index| &self.headers.get(index).unwrap().value)
     }
 
     /// Serializes the Collection of Headers into the

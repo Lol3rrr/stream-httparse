@@ -11,19 +11,19 @@ pub enum HeaderValue<'a> {
     NumberUsize(usize),
 }
 
-impl<'a> Into<HeaderValue<'a>> for &'a str {
-    fn into(self) -> HeaderValue<'a> {
-        HeaderValue::StrRef(self)
+impl<'a> From<&'a str> for HeaderValue<'a> {
+    fn from(val: &'a str) -> Self {
+        HeaderValue::StrRef(val)
     }
 }
-impl<'a> Into<HeaderValue<'a>> for String {
-    fn into(self) -> HeaderValue<'a> {
-        HeaderValue::Str(self)
+impl<'a> From<String> for HeaderValue<'a> {
+    fn from(val: String) -> Self {
+        HeaderValue::Str(val)
     }
 }
-impl<'a> Into<HeaderValue<'a>> for usize {
-    fn into(self) -> HeaderValue<'a> {
-        HeaderValue::NumberUsize(self)
+impl<'a> From<usize> for HeaderValue<'a> {
+    fn from(val: usize) -> Self {
+        HeaderValue::NumberUsize(val)
     }
 }
 

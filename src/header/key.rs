@@ -18,14 +18,14 @@ pub enum HeaderKey<'a> {
     Str(String),
 }
 
-impl<'a> Into<HeaderKey<'a>> for &'a str {
-    fn into(self) -> HeaderKey<'a> {
-        HeaderKey::StrRef(self)
+impl<'a> From<&'a str> for HeaderKey<'a> {
+    fn from(val: &'a str) -> Self {
+        HeaderKey::StrRef(val)
     }
 }
-impl<'a> Into<HeaderKey<'a>> for String {
-    fn into(self) -> HeaderKey<'a> {
-        HeaderKey::Str(self)
+impl<'a> From<String> for HeaderKey<'a> {
+    fn from(val: String) -> Self {
+        HeaderKey::Str(val)
     }
 }
 
