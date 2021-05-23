@@ -1,5 +1,26 @@
 use crate::{general::StringContainer, header::HeaderValue, Headers, Method};
 
+#[derive(Debug)]
+enum BodyData<'a> {
+    Ref(&'a [u8]),
+    Owned(Vec<u8>),
+}
+
+impl<'a> AsRef<[u8]> for BodyData<'a> {
+    fn as_ref(&self) -> &[u8] {
+        match self {
+            Self::Ref(tmp) => tmp,
+            Self::Owned(tmp) => tmp.as_ref(),
+        }
+    }
+}
+
+impl<'a> PartialEq for BodyData<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_ref().eq(other.as_ref())
+    }
+}
+
 /// Represents a single HTTP-Request
 #[derive(Debug, PartialEq)]
 pub struct Request<'a> {
@@ -7,7 +28,7 @@ pub struct Request<'a> {
     path: StringContainer<'a>,
     protocol: &'a str,
     headers: Headers<'a>,
-    body: &'a [u8],
+    body: BodyData<'a>,
 }
 
 impl<'a> Request<'a> {
@@ -25,7 +46,7 @@ impl<'a> Request<'a> {
             path: StringContainer::Ref(path),
             protocol,
             headers,
-            body,
+            body: BodyData::Ref(body),
         }
     }
 
@@ -51,7 +72,7 @@ impl<'a> Request<'a> {
         // The ending of the head
         result.extend_from_slice("\r\n".as_bytes());
 
-        (result, self.body)
+        (result, self.body.as_ref())
     }
 
     /// Returns the Protocol of the Request
@@ -76,7 +97,7 @@ impl<'a> Request<'a> {
     }
     /// Returns the Body of the Request
     pub fn body(&self) -> &[u8] {
-        self.body
+        self.body.as_ref()
     }
 
     /// Checks if the Requests expects a
@@ -99,6 +120,11 @@ impl<'a> Request<'a> {
     /// an owned String instead of a reference
     pub fn set_path_owned(&mut self, n_path: String) {
         self.path = StringContainer::Owned(n_path);
+    }
+
+    /// Replaces the current Body with the given Data
+    pub fn set_body(&mut self, data: Vec<u8>) {
+        self.body = BodyData::Owned(data);
     }
 }
 
