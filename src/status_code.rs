@@ -205,6 +205,107 @@ impl StatusCode {
     }
 }
 
+#[cfg(feature = "wasm_serialize")]
+impl StatusCode {
+    /// Deserializes the i32 Value to a StatusCode for easier
+    /// exchange between WASM and the Host
+    pub fn wasm_deserialize(key: i32) -> Option<Self> {
+        match key {
+            100 => Some(StatusCode::Continue),
+            101 => Some(StatusCode::SwitchingProtocols),
+            200 => Some(StatusCode::OK),
+            201 => Some(StatusCode::Created),
+            202 => Some(StatusCode::Accepted),
+            203 => Some(StatusCode::NonAuthoritativeInformation),
+            204 => Some(StatusCode::NoContent),
+            205 => Some(StatusCode::ResetContent),
+            206 => Some(StatusCode::PartialContent),
+            300 => Some(StatusCode::MultipleChoices),
+            301 => Some(StatusCode::MovedPermanently),
+            302 => Some(StatusCode::Found),
+            303 => Some(StatusCode::SeeOther),
+            304 => Some(StatusCode::NotModified),
+            305 => Some(StatusCode::UseProxy),
+            307 => Some(StatusCode::TemporaryRedirect),
+            400 => Some(StatusCode::BadRequest),
+            401 => Some(StatusCode::Unauthorized),
+            402 => Some(StatusCode::PaymentRequired),
+            403 => Some(StatusCode::Forbidden),
+            404 => Some(StatusCode::NotFound),
+            405 => Some(StatusCode::MethodNotAllowed),
+            406 => Some(StatusCode::NotAcceptable),
+            407 => Some(StatusCode::ProxyAuthenticationRequired),
+            408 => Some(StatusCode::RequestTimeOut),
+            409 => Some(StatusCode::Conflict),
+            410 => Some(StatusCode::Gone),
+            411 => Some(StatusCode::LengthRequired),
+            412 => Some(StatusCode::PreconditionFailed),
+            413 => Some(StatusCode::RequestEntityTooLarge),
+            414 => Some(StatusCode::RequestURITooLarge),
+            415 => Some(StatusCode::UnsupportedMediaType),
+            416 => Some(StatusCode::RequestedRangeNotSatisfiable),
+            417 => Some(StatusCode::ExpectationFailed),
+            418 => Some(StatusCode::ImATeapot),
+            500 => Some(StatusCode::InternalServerError),
+            501 => Some(StatusCode::NotImplemented),
+            502 => Some(StatusCode::BadGateway),
+            503 => Some(StatusCode::ServiceUnavailable),
+            504 => Some(StatusCode::GatewayTimeout),
+            505 => Some(StatusCode::HTTPVersionNotSupported),
+            _ => None,
+        }
+    }
+
+    /// Serializes the given StatusCode to a simple
+    /// i32 Value, which makes it easier to exchange between
+    /// a WASM module and its host
+    pub fn wasms_serialize(&self) -> i32 {
+        match *self {
+            Self::Continue => 100,
+            Self::SwitchingProtocols => 101,
+            Self::OK => 200,
+            Self::Created => 201,
+            Self::Accepted => 202,
+            Self::NonAuthoritativeInformation => 203,
+            Self::NoContent => 204,
+            Self::ResetContent => 205,
+            Self::PartialContent => 206,
+            Self::MultipleChoices => 300,
+            Self::MovedPermanently => 301,
+            Self::Found => 302,
+            Self::SeeOther => 303,
+            Self::NotModified => 304,
+            Self::UseProxy => 305,
+            Self::TemporaryRedirect => 307,
+            Self::BadRequest => 400,
+            Self::Unauthorized => 401,
+            Self::PaymentRequired => 402,
+            Self::Forbidden => 403,
+            Self::NotFound => 404,
+            Self::MethodNotAllowed => 405,
+            Self::NotAcceptable => 406,
+            Self::ProxyAuthenticationRequired => 407,
+            Self::RequestTimeOut => 408,
+            Self::Conflict => 409,
+            Self::Gone => 410,
+            Self::LengthRequired => 411,
+            Self::PreconditionFailed => 412,
+            Self::RequestEntityTooLarge => 413,
+            Self::RequestURITooLarge => 414,
+            Self::UnsupportedMediaType => 415,
+            Self::RequestedRangeNotSatisfiable => 416,
+            Self::ExpectationFailed => 417,
+            Self::ImATeapot => 418,
+            Self::InternalServerError => 500,
+            Self::NotImplemented => 501,
+            Self::BadGateway => 502,
+            Self::ServiceUnavailable => 503,
+            Self::GatewayTimeout => 504,
+            Self::HTTPVersionNotSupported => 505,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
