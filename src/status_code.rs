@@ -259,7 +259,7 @@ impl StatusCode {
     /// Serializes the given StatusCode to a simple
     /// i32 Value, which makes it easier to exchange between
     /// a WASM module and its host
-    pub fn wasms_serialize(&self) -> i32 {
+    pub fn wasm_serialize(&self) -> i32 {
         match *self {
             Self::Continue => 100,
             Self::SwitchingProtocols => 101,

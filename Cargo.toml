@@ -1,7 +1,7 @@
 [package]
 name = "stream-httparse"
 description = "A fast streaming HTTP-Parser"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["lol3rrr <s.loler03@gmail.com>"]
 edition = "2018"
 license = "MIT"
