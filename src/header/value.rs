@@ -81,6 +81,37 @@ impl<'a> HeaderValue<'a> {
             Self::NumberUsize(_) => None,
         }
     }
+
+    /// Returns the amount of space in bytes that
+    /// this Value needs
+    pub fn length(&self) -> usize {
+        match self {
+            Self::Str(tmp) => tmp.len(),
+            Self::StrRef(tmp) => tmp.len(),
+            Self::NumberUsize(val) => {
+                let mut tmp = *val;
+                let mut result = 1;
+
+                loop {
+                    if tmp < 10 {
+                        return result;
+                    }
+                    if tmp < 100 {
+                        return result + 1;
+                    }
+                    if tmp < 1000 {
+                        return result + 2;
+                    }
+                    if tmp < 10000 {
+                        return result + 3;
+                    }
+
+                    tmp /= 10000;
+                    result += 4;
+                }
+            }
+        }
+    }
 }
 
 impl PartialEq<std::string::String> for HeaderValue<'_> {

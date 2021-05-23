@@ -7,6 +7,7 @@ use crate::{
 #[derive(Debug, PartialEq, Clone)]
 pub struct Headers<'a> {
     headers: Vec<Header<'a>>,
+    max_value_length: usize,
 }
 
 impl<'a> Headers<'a> {
@@ -16,6 +17,7 @@ impl<'a> Headers<'a> {
     pub fn new() -> Self {
         Self {
             headers: Vec::new(),
+            max_value_length: 0,
         }
     }
 
@@ -27,6 +29,7 @@ impl<'a> Headers<'a> {
     pub fn with_capacity(cap: usize) -> Self {
         Self {
             headers: Vec::with_capacity(cap),
+            max_value_length: 0,
         }
     }
 
@@ -48,9 +51,15 @@ impl<'a> Headers<'a> {
             self.headers.remove(index);
         }
 
+        let n_value: HeaderValue = value.into();
+        let n_value_length = n_value.length();
+        if n_value_length > self.max_value_length {
+            self.max_value_length = n_value_length;
+        }
+
         self.headers.push(Header {
             key: final_key,
-            value: value.into(),
+            value: n_value,
         });
     }
 
@@ -62,9 +71,15 @@ impl<'a> Headers<'a> {
         K: Into<HeaderKey<'a>>,
         V: Into<HeaderValue<'a>>,
     {
+        let n_value: HeaderValue = value.into();
+        let n_value_length = n_value.length();
+        if n_value_length > self.max_value_length {
+            self.max_value_length = n_value_length;
+        }
+
         self.headers.push(Header {
             key: key.into(),
-            value: value.into(),
+            value: n_value,
         })
     }
 
@@ -109,6 +124,19 @@ impl<'a> Headers<'a> {
         for pair in self.headers.iter() {
             pair.serialize(buf);
         }
+    }
+
+    /// Returns the Size in bytes of the biggest Value as text.
+    ///
+    /// This means that all the Header-Values in this collection
+    /// can fit in a buffer of this size.
+    pub fn get_max_value_size(&self) -> usize {
+        self.max_value_length
+    }
+
+    /// Returns the Number of Headers in this collection
+    pub fn get_header_count(&self) -> usize {
+        self.headers.len()
     }
 }
 
