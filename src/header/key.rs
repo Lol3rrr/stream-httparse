@@ -42,6 +42,18 @@ impl<'a> HeaderKey<'a> {
             }
         }
     }
+
+    /// Clones all the needed Data in order to create a new
+    /// HeaderKey that is completly independant of the given
+    /// self reference
+    pub fn to_owned<'refed, 'owned>(&'refed self) -> HeaderKey<'owned> {
+        let value = match self {
+            Self::StrRef(tmp) => tmp.to_string(),
+            Self::Str(tmp) => tmp.to_owned(),
+        };
+
+        HeaderKey::Str(value)
+    }
 }
 
 impl AsRef<str> for HeaderKey<'_> {

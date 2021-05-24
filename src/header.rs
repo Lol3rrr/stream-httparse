@@ -27,6 +27,15 @@ impl<'a> Header<'a> {
         self.value.serialize(buf);
         buf.extend_from_slice("\r\n".as_bytes());
     }
+
+    /// Clones all the assosicated Data to create a completly
+    /// new and independant Header instance
+    pub fn to_owned<'refed, 'owned>(&'refed self) -> Header<'owned> {
+        Header {
+            key: self.key.to_owned(),
+            value: self.value.to_owned(),
+        }
+    }
 }
 
 #[cfg(test)]

@@ -3,11 +3,32 @@ use crate::{
     Headers, StatusCode,
 };
 
+#[derive(Debug)]
+enum ProtocolData<'a> {
+    Ref(&'a str),
+    Owned(String),
+}
+
+impl<'a> AsRef<str> for ProtocolData<'a> {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Ref(tmp) => tmp,
+            Self::Owned(tmp) => &tmp,
+        }
+    }
+}
+
+impl<'a> PartialEq for ProtocolData<'a> {
+    fn eq(&self, other: &ProtocolData<'_>) -> bool {
+        self.as_ref().eq(other.as_ref())
+    }
+}
+
 /// Represents a single HTTP-Request
 #[derive(Debug, PartialEq)]
 pub struct Response<'a> {
     status_code: StatusCode,
-    protocol: &'a str,
+    protocol: ProtocolData<'a>,
     headers: Headers<'a>,
     body: Vec<u8>,
 }
@@ -23,7 +44,23 @@ impl<'a> Response<'a> {
     ) -> Self {
         Self {
             status_code,
-            protocol,
+            protocol: ProtocolData::Ref(protocol),
+            headers,
+            body,
+        }
+    }
+
+    /// Creates a new Response that owns all of
+    /// its Data
+    pub(crate) fn new_owned(
+        protocol: String,
+        status_code: StatusCode,
+        headers: Headers<'a>,
+        body: Vec<u8>,
+    ) -> Self {
+        Self {
+            status_code,
+            protocol: ProtocolData::Owned(protocol),
             headers,
             body,
         }
@@ -32,7 +69,7 @@ impl<'a> Response<'a> {
     /// Serialzes the Response and returns the Data as
     /// a tuple of form (HTTP-Head, HTTP-Body)
     pub fn serialize(&self) -> (Vec<u8>, &[u8]) {
-        let protocol = self.protocol;
+        let protocol = self.protocol.as_ref();
         let status_code = self.status_code.serialize();
 
         let capacity = protocol.len() + 1 + status_code.len() + 4;
@@ -55,7 +92,7 @@ impl<'a> Response<'a> {
 
     /// Returns the Protocol of the Response
     pub fn protocol(&self) -> &str {
-        &self.protocol
+        self.protocol.as_ref()
     }
     /// Returns the StatusCode of the Response
     pub fn status_code(&self) -> &StatusCode {
@@ -97,6 +134,17 @@ impl<'a> Response<'a> {
             None => false,
             Some(value) => value.eq_ignore_case(&HeaderValue::StrRef("Chunked")),
         }
+    }
+
+    /// Clones the entire Response to produce a new indepandent
+    /// Response
+    pub fn to_owned<'refed, 'owned>(&'refed self) -> Response<'owned> {
+        Response::new_owned(
+            self.protocol.as_ref().to_owned(),
+            self.status_code.clone(),
+            self.headers.to_owned(),
+            self.body.clone(),
+        )
     }
 }
 
@@ -161,5 +209,16 @@ mod tests {
         let resp = Response::new("HTTP/1.1", StatusCode::OK, headers, "".as_bytes().to_vec());
 
         assert_eq!(false, resp.is_chunked());
+    }
+
+    #[test]
+    fn to_owned() {
+        let resp = Response::new("HTTP/1.1", StatusCode::OK, Headers::new(), Vec::new());
+
+        let cloned = resp.to_owned();
+
+        drop(resp);
+
+        assert_eq!(&StatusCode::OK, cloned.status_code())
     }
 }

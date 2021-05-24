@@ -112,6 +112,17 @@ impl<'a> HeaderValue<'a> {
             }
         }
     }
+
+    /// Clones all the needed Data in order to create a new
+    /// HeaderValue that is completly independant of the given
+    /// self reference
+    pub fn to_owned<'refed, 'owned>(&'refed self) -> HeaderValue<'owned> {
+        match self {
+            Self::Str(tmp) => HeaderValue::Str(tmp.clone()),
+            Self::StrRef(tmp) => HeaderValue::Str(tmp.to_string()),
+            Self::NumberUsize(tmp) => HeaderValue::NumberUsize(*tmp),
+        }
+    }
 }
 
 impl PartialEq<std::string::String> for HeaderValue<'_> {

@@ -1,5 +1,5 @@
 /// Represents all the known and defined StatusCodes
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum StatusCode {
     /// The Request should be continued by the Client
     Continue,

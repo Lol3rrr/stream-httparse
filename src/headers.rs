@@ -138,6 +138,21 @@ impl<'a> Headers<'a> {
     pub fn get_header_count(&self) -> usize {
         self.headers.len()
     }
+
+    /// Clones all the assosicated Data to produce a new and
+    /// independant Header-Collection
+    pub fn to_owned<'refed, 'owned>(&'refed self) -> Headers<'owned> {
+        let mut n_headers = Vec::with_capacity(self.headers.len());
+
+        for tmp in self.headers.iter() {
+            n_headers.push(tmp.to_owned());
+        }
+
+        Headers {
+            headers: n_headers,
+            max_value_length: self.max_value_length,
+        }
+    }
 }
 
 impl<'a> Default for Headers<'a> {

@@ -256,6 +256,72 @@ impl RespParser {
             std::mem::take(&mut self.body_buffer),
         ))
     }
+
+    /// Finalizes the Response that is currently being Parsed by the Parser
+    /// and returns an owned Response-Instance with the parsed Data. This means
+    /// that the Response is independant of the Parser, unlike the normal `finish`
+    /// Function. This freedom comes at the cost of more memory allocations and
+    /// therefore less performance, so only use this where needed.
+    pub fn finish_owned<'a, 'owned>(&'a mut self) -> Result<Response<'owned>, ParseError> {
+        let (protocol, status_code) = match &self.state {
+            ParseState::HeadersParsed(p, stc, _) => (p, stc),
+            ParseState::Nothing => {
+                return Err(ParseError::MissingProtocol);
+            }
+            ParseState::ProtocolParsed(_) => {
+                return Err(ParseError::MissingStatusCode);
+            }
+            ParseState::HeaderKey(_, _, _) => {
+                return Err(ParseError::MissingHeaders);
+            }
+            ParseState::HeaderValue(_, _, _) => {
+                return Err(ParseError::MissingHeaders);
+            }
+        };
+
+        let raw_protocol = &self.buffer[protocol.0..protocol.1];
+        let raw_status_code = &self.buffer[status_code.0..status_code.1];
+
+        let protocol = unsafe { String::from_utf8_unchecked(raw_protocol.to_owned()) };
+        let status_code = match std::str::from_utf8(raw_status_code) {
+            Ok(s) => s,
+            Err(_) => {
+                return Err(ParseError::InvalidStatusCode);
+            }
+        };
+        if !status_code.is_ascii() {
+            return Err(ParseError::InvalidStatusCode);
+        }
+
+        let parsed_status_code = match StatusCode::parse(status_code) {
+            Some(s) => s,
+            None => return Err(ParseError::InvalidStatusCode),
+        };
+
+        let header_count = self.headers_buf.len();
+        let mut headers = Headers::with_capacity(header_count);
+        for tmp_header in self.headers_buf.iter() {
+            let key_range = tmp_header.0;
+            let raw_key = &self.buffer[key_range.0..key_range.1];
+
+            let value_range = tmp_header.1;
+            let raw_value = &self.buffer[value_range.0..value_range.1];
+
+            let key = unsafe { String::from_utf8_unchecked(raw_key.to_owned()) };
+            let value = unsafe { String::from_utf8_unchecked(raw_value.to_owned()) };
+
+            // Use append to simply add the header at the end of the collection
+            // without checking for duplicates
+            headers.append(key, value);
+        }
+
+        Ok(Response::new_owned(
+            protocol,
+            parsed_status_code,
+            headers,
+            std::mem::take(&mut self.body_buffer),
+        ))
+    }
 }
 
 #[cfg(test)]
