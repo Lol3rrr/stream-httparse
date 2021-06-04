@@ -260,6 +260,11 @@ impl ReqParser {
 
         Ok(Request::new(protocol, parsed_method, path, headers, body))
     }
+
+    /// Returns the current Buffer of the Parser
+    pub fn buffer(&self) -> &[u8] {
+        &self.buffer
+    }
 }
 
 #[cfg(test)]
